@@ -17,7 +17,7 @@ contract MintNFT is ERC721Enumerable, Ownable{
     }
 
 
-    function mintNft() public  {
+    function mintNft() public  onlyOwner{
         require(totalSupply() < 9, "No more mint.");
 
         uint tokenId = totalSupply() + 1;
@@ -30,6 +30,7 @@ contract MintNFT is ERC721Enumerable, Ownable{
 
         if(isRevealed){
             return string(abi.encodePacked(metadataUri, Strings.toString(_tokenId), ".json"));
+            
         } else {
             return unrevealedUri;
         }
