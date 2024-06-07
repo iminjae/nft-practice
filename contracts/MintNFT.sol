@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract MintNFT is ERC721Enumerable, Ownable{
+contract MintNft is ERC721Enumerable, Ownable{
     string metadataUri;
     string unrevealedUri;
 
@@ -23,7 +23,6 @@ contract MintNFT is ERC721Enumerable, Ownable{
         uint tokenId = totalSupply() + 1;
 
         _mint(msg.sender, tokenId);
-
     }
 
     function tokenURI(uint _tokenId) public view override returns (string memory) {
