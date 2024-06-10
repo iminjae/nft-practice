@@ -28,7 +28,7 @@ const Layout: FC = () => {
                 setSaleContract={setSaleContract}
             />
             <Flex flexGrow={1}>
-                <Outlet context={{ mintContract, signer }} />
+                <Outlet context={{ mintContract, signer, saleContract }} />
             </Flex>
         </Flex>
     );
