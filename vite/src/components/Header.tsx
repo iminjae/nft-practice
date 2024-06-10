@@ -14,14 +14,20 @@ import { Dispatch, FC, SetStateAction, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import mintAbi from "../abis/mintAbi.json";
+import saleAbi from "../abis/saleAbi.json";
+import {
+    mintContractAddress,
+    saleContractAddress,
+} from "../abis/contractAddress";
 
 interface HeaderProps {
     signer: JsonRpcSigner | null;
     setSigner: Dispatch<SetStateAction<JsonRpcSigner | null>>;
     setMintContract: Dispatch<SetStateAction<Contract | null>>;
+    setSaleContract: Dispatch<SetStateAction<Contract | null>>;
 }
 
-const Header: FC<HeaderProps> = ({ signer, setSigner, setMintContract }) => {
+const Header: FC<HeaderProps> = ({ signer, setSigner, setMintContract, setSaleContract }) => {
     const navigate = useNavigate();
 
     const onClickMetamask = async () => {
@@ -43,15 +49,8 @@ const Header: FC<HeaderProps> = ({ signer, setSigner, setMintContract }) => {
             return;
         }
 
-        setMintContract(
-            new Contract(
-                // "0x4ea9be12a7ebf2397d42007172d2a3dfb005b0c1",
-                // "0x1aaa7230cd3f95fd4c97681352b036f47cfea533",
-                "0xc2a658c57304a406ec84533c85afecdf2d24ef43" ,
-                mintAbi,
-                signer
-            )
-        );
+        setMintContract(new Contract(mintContractAddress, mintAbi, signer));
+        setSaleContract(new Contract(saleContractAddress, saleAbi, signer));
     }, [signer]);
 
     return (
