@@ -4,9 +4,6 @@ import {
     Flex,
     GridItem,
     Image,
-    Input,
-    InputGroup,
-    InputRightAddon,
     Popover,
     PopoverArrow,
     PopoverBody,
@@ -15,25 +12,31 @@ import {
     PopoverTrigger,
     Text,
   } from "@chakra-ui/react";
-  import { Contract, formatEther, parseEther } from "ethers";
-  import { FC, useEffect, useState } from "react";
+  import { Contract, formatEther, JsonRpcSigner } from "ethers";
+  import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
   
-  interface NftCardProps {
+  interface SaleNftCardProps {
     nftMetadata: NftMetadata;
     tokenId: number;
+    mintContract: Contract | null;
     saleContract: Contract | null;
-    isApprovedForAll: boolean;
+    signer: JsonRpcSigner | null;
+    getOnSaleTokens: () => Promise<void>;
+    getNftMetadata: () => Promise<void>;
   }
   
-  const NftCard: FC<NftCardProps> = ({
+  const SaleNftCard: FC<SaleNftCardProps> = ({
     nftMetadata,
     tokenId,
+    mintContract,
     saleContract,
-    isApprovedForAll,
+    signer,
+    getOnSaleTokens,
+    getNftMetadata,
   }) => {
     const [currentPrice, setCurrentPrice] = useState<bigint>();
-    const [salePrice, setSalePrice] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isOwner, setIsOwner] = useState<boolean>(false);
   
     const getTokenPrice = async () => {
       try {
@@ -45,20 +48,28 @@ import {
       }
     };
   
-    const onClickSetForSaleNft = async () => {
+    const getOwnerOf = async () => {
       try {
-        if (!salePrice || isNaN(Number(salePrice))) return;
+        const response = await mintContract?.ownerOf(tokenId);
   
+        setIsOwner(signer?.address === response);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    const onClickPurchaseNft = async () => {
+      try {
         setIsLoading(true);
   
-        const response = await saleContract?.setForSaleNft(
-          tokenId,
-          parseEther(salePrice)
-        );
+        const response = await saleContract?.purchaseNft(tokenId, {
+          value: currentPrice,
+        });
   
         await response.wait();
   
-        setCurrentPrice(parseEther(salePrice));
+        await getOnSaleTokens();
+        await getNftMetadata();
   
         setIsLoading(false);
       } catch (error) {
@@ -73,6 +84,12 @@ import {
   
       getTokenPrice();
     }, [saleContract, tokenId]);
+  
+    useEffect(() => {
+      if (!mintContract || !tokenId) return;
+  
+      getOwnerOf();
+    }, [mintContract, tokenId]);
   
     return (
       <GridItem display="flex" flexDir="column">
@@ -101,28 +118,19 @@ import {
             </Box>
           ))}
         </Flex>
-        <Flex mt={4}>
+        <Flex mt={4} alignItems="center">
           {currentPrice ? (
-            <Text>{formatEther(currentPrice)} ETH</Text>
-          ) : isApprovedForAll ? (
             <>
-              <InputGroup>
-                <Input
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
-                  textAlign="right"
-                  isDisabled={isLoading}
-                />
-                <InputRightAddon>ETH</InputRightAddon>
-              </InputGroup>
+              <Text>{formatEther(currentPrice)} ETH</Text>
               <Button
                 ml={2}
-                onClick={onClickSetForSaleNft}
-                isDisabled={isLoading}
+                colorScheme="pink"
+                onClick={onClickPurchaseNft}
+                isDisabled={isLoading || isOwner}
                 isLoading={isLoading}
                 loadingText="로딩중"
               >
-                등록
+                구매
               </Button>
             </>
           ) : (
@@ -133,4 +141,4 @@ import {
     );
   };
   
-  export default NftCard;
+  export default SaleNftCard;
